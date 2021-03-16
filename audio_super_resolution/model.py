@@ -12,14 +12,19 @@ class SineActivation(nn.Module):
 
 
 class Bottleneck(nn.Module):
-    def __init__(self, planes):
+    def __init__(self, planes, kernel_size):
         super(Bottleneck, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv1d(planes, planes // 4, kernel_size=1),
             nn.BatchNorm1d(planes // 4),
             SineActivation(),
 
-            nn.Conv1d(planes // 4, planes // 4, kernel_size=11, padding=5),
+            nn.Conv1d(
+                planes // 4,
+                planes // 4,
+                kernel_size=kernel_size,
+                padding=kernel_size // 2
+            ),
             nn.BatchNorm1d(planes // 4),
             SineActivation(),
 
@@ -35,27 +40,68 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, n_layers=3, n_planes=[32, 64, 128, 64, 32], tied=True):
+    def __init__(self, n_layers=[3, 5, 5, 3], init_planes=32):
         super(ResNet, self).__init__()
         self.n_layers = n_layers
-        self.n_planes = n_planes
-        self.conv1 = nn.Conv1d(1, n_planes[0], kernel_size=11, padding=5)
-        self.resnet = nn.Sequential()
-        for plane_index, planes in enumerate(n_planes):
-            for layer in range(n_layers):
-                self.resnet.add_module('Block{plane_index:01d}_layer{layer:01d}', Bottleneck(planes))
-        self.conv1_reverse = nn.Conv1d(n_planes[-1], 1, kernel_size=11, padding=5)
-        if n_planes[0] == n_planes[-1] and tied:
-            self.conv1_reverse.weight.data = self.conv1.weight.transpose(0, 1)
+        self.planes = init_planes
+
+        # channel up
+        self.conv1 = nn.Conv1d(1, self.planes, kernel_size=21, padding=10)
+        # Residual blocks
+        self.layer1 = self._make_layer(
+            Bottleneck,
+            n_layers[0],
+            self.planes,
+            21,
+            'up'
+        )
+        self.layer2 = self._make_layer(
+            Bottleneck,
+            n_layers[1],
+            self.planes,
+            21,
+            'up'
+        )
+        self.layer3 = self._make_layer(
+            Bottleneck,
+            n_layers[2],
+            self.planes,
+            21,
+            'down'
+        )
+        self.layer4 = self._make_layer(
+            Bottleneck,
+            n_layers[3],
+            self.planes,
+            21,
+            'down'
+        )
+        # channel reduce
+        self.conv2 = nn.Conv1d(self.planes, 1, kernel_size=11, padding=5)
+
+    def _make_layer(self, block, n_blocks, planes, kernel_size, expand):
+        layers = []
+        for i in range(n_blocks):
+            layers.append(block(planes, kernel_size))
+        if expand == 'up':
+            layers.append(nn.Conv1d(planes, 2 * planes, kernel_size=1))
+            self.planes *= 2
+        elif expand == 'down':
+            layers.append(nn.Conv1d(planes, planes // 2, kernel_size=1))
+            self.planes //= 2
+        return nn.Sequential(*layers)
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.resnet(x)
-        x = self.conv1_reverse(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.conv2(x)
         return x
 
 
 if __name__ == '__main__':
     model = ResNet()
     x = torch.randn((4, 1, 16000))
-    y = model(x)
+    out = model(x)
