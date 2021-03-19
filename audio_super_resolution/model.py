@@ -40,7 +40,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, n_layers=[3, 5, 5, 3], init_planes=32):
+    def __init__(self, n_layers=[3, 4, 4, 3], init_planes=32):
         super(ResNet, self).__init__()
         self.n_layers = n_layers
         self.planes = init_planes
@@ -53,40 +53,44 @@ class ResNet(nn.Module):
             n_layers[0],
             self.planes,
             21,
-            'up'
+            'increase'
         )
         self.layer2 = self._make_layer(
             Bottleneck,
             n_layers[1],
             self.planes,
             21,
-            'up'
+            'increase'
         )
         self.layer3 = self._make_layer(
             Bottleneck,
             n_layers[2],
             self.planes,
             21,
-            'down'
+            'decrease'
         )
         self.layer4 = self._make_layer(
             Bottleneck,
             n_layers[3],
             self.planes,
             21,
-            'down'
+            'decrease'
         )
         # channel reduce
-        self.conv2 = nn.Conv1d(self.planes, 1, kernel_size=11, padding=5)
+        self.conv2 = nn.Sequential(
+            nn.Conv1d(self.planes, 1, kernel_size=5, padding=2),
+            SineActivation()
+        )
+
 
     def _make_layer(self, block, n_blocks, planes, kernel_size, expand):
         layers = []
-        for i in range(n_blocks):
+        for _ in range(n_blocks):
             layers.append(block(planes, kernel_size))
-        if expand == 'up':
+        if expand == 'increase':
             layers.append(nn.Conv1d(planes, 2 * planes, kernel_size=1))
             self.planes *= 2
-        elif expand == 'down':
+        elif expand == 'decrease':
             layers.append(nn.Conv1d(planes, planes // 2, kernel_size=1))
             self.planes //= 2
         return nn.Sequential(*layers)
