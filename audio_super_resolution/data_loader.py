@@ -41,7 +41,7 @@ class AudioLoader(Dataset):
 
 if __name__ == '__main__':
     al = AudioLoader(
-        '/home/aj/repo/audio_super_resolution/resources/wav',
+        '/home/aj/repo/snippets/audio_super_resolution/resources/wav',
         'resources/duration_list_prune.json',
         32000
     )
