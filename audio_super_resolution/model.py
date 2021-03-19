@@ -82,7 +82,6 @@ class ResNet(nn.Module):
             SineActivation()
         )
 
-
     def _make_layer(self, block, n_blocks, planes, kernel_size, expand):
         layers = []
         for _ in range(n_blocks):
