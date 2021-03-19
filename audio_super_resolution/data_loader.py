@@ -9,11 +9,12 @@ from tqdm import tqdm
 
 
 class AudioLoader(Dataset):
-    def __init__(self, base_path, json_file_list, n_samples):
+    def __init__(self, base_path, json_file_list, n_samples, n_mask):
         self.base_path = base_path
         with open(json_file_list) as f:
             self.data = json.load(f)
         self.n_samples = n_samples
+        self.n_mask = 160
 
     def __len__(self):
         return len(self.data)
@@ -33,7 +34,12 @@ class AudioLoader(Dataset):
         x = np.copy(y)
         x[np.random.randint(0, 2)::2] = 0
 
-        # TODO: bulk masking
+        # time masking
+        if np.random.random() < .5:
+            start = np.random.randint(0, self.n_samples - self.n_mask)
+            end = start + self.n_mask
+            x[start:end] = 0
+
         x = torch.from_numpy(x).unsqueeze(0)
         y = torch.from_numpy(y).unsqueeze(0)
         return x, y
@@ -43,7 +49,8 @@ if __name__ == '__main__':
     al = AudioLoader(
         '/home/aj/repo/snippets/audio_super_resolution/resources/wav',
         'resources/duration_list_prune.json',
-        32000
+        32000,
+        80
     )
     for x, y in tqdm(al):
         break
