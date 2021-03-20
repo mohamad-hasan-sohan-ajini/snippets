@@ -4,6 +4,7 @@ import os
 import numpy as np
 import soundfile as sf
 import torch
+from scipy.signal import butter, sosfiltfilt
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
@@ -14,7 +15,7 @@ class AudioLoader(Dataset):
         with open(json_file_list) as f:
             self.data = json.load(f)
         self.n_samples = n_samples
-        self.n_mask = 160
+        self.n_mask = n_mask
 
     def __len__(self):
         return len(self.data)
@@ -24,25 +25,40 @@ class AudioLoader(Dataset):
         file_path = os.path.join(self.base_path, file_name)
         y, sr = sf.read(file_path)
 
-        # TODO: unit gain
         # crop signal
         start = np.random.randint(0, y.shape[0] - self.n_samples)
         end = start + self.n_samples
         y = y[start:end].astype(np.float32)
 
-        # create masked input
+        # create low resolution input
         x = np.copy(y)
         x[np.random.randint(0, 2)::2] = 0
 
         # time masking
         if np.random.random() < .5:
-            start = np.random.randint(0, self.n_samples - self.n_mask)
-            end = start + self.n_mask
-            x[start:end] = 0
+            x = self._time_mask(x)
 
+        # freq filter
+        if np.random.random() < .5:
+            x = self._freq_mask(x, sr)
+
+        x = np.ascontiguousarray(x, dtype=np.float32)
         x = torch.from_numpy(x).unsqueeze(0)
         y = torch.from_numpy(y).unsqueeze(0)
         return x, y
+
+    def _time_mask(self, x):
+        start = np.random.randint(0, self.n_samples - self.n_mask)
+        end = start + self.n_mask
+        x[start:end] = 0
+        return x
+
+    def _freq_mask(self, x, sr):
+        low = np.random.randint(40, 60)
+        high = np.random.randint(3500, 4000)
+        sos = butter(10, [low, high], 'bp', fs=sr, output='sos')
+        x = sosfiltfilt(sos, x)
+        return x
 
 
 if __name__ == '__main__':
