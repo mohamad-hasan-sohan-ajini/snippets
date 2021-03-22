@@ -43,19 +43,21 @@ class AudioLoader(Dataset):
 
         # create low resolution input
         x = np.copy(y)
-        x[np.random.randint(0, 2)::2] = 0
 
-        # time masking
+        # additive noise
         if np.random.random() < .5:
-            x = self._time_mask(x)
+            x = self._add_noise(x)
 
         # freq filter
         if np.random.random() < .5:
             x = self._freq_mask(x, sr)
 
-        # additive noise
+        # time masking
         if np.random.random() < .5:
-            x = self._add_noise(x)
+            x = self._time_mask(x)
+
+        # downsampling
+        x[np.random.randint(0, 2)::2] = 0
 
         x = np.ascontiguousarray(x, dtype=np.float32)
         x = torch.from_numpy(x).unsqueeze(0)
