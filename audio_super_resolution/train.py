@@ -17,7 +17,8 @@ ds = AudioLoader(
     base_path='/home/aj/repo/snippets/audio_super_resolution/resources/wav',
     json_file_list='resources/duration_list_prune.json',
     n_samples=32000,
-    n_mask=80
+    n_mask=80,
+    noise_file='resources/noise/whitenoisegaussian.wav'
 )
 dl = DataLoader(ds, batch_size=8, num_workers=8, pin_memory=True)
 

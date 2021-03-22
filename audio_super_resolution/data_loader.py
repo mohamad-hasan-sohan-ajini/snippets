@@ -24,7 +24,7 @@ class AudioLoader(Dataset):
         self.n_samples = n_samples
         self.n_mask = n_mask
         if noise_file:
-            self.noise = sf.read(noise_file)
+            self.noise, _ = sf.read(noise_file)
         else:
             self.noise = None
 
@@ -96,7 +96,8 @@ if __name__ == '__main__':
         '/home/aj/repo/snippets/audio_super_resolution/resources/wav',
         'resources/duration_list_prune.json',
         32000,
-        80
+        80,
+        'resources/noise/whitenoisegaussian.wav'
     )
     for x, y in tqdm(al):
         break
