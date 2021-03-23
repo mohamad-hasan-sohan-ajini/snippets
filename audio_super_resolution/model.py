@@ -104,6 +104,38 @@ class ResNet(nn.Module):
         return x
 
 
+class ConvBlock(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size, stride):
+        super(ConvBlock, self).__init__()
+        self.main = nn.Sequential(
+            nn.Conv1d(in_ch, out_ch, kernel_size=kernel_size, stride=stride),
+            nn.BatchNorm1d(out_ch),
+            SineActivation()
+        )
+
+    def forward(self, x):
+        return self.main(x)
+
+
+class Detector(nn.Module):
+    def __init__(self):
+        super(Detector, self).__init__()
+
+        self.conv = nn.Sequential(
+            ConvBlock(1, 16, 11, 1),
+            ConvBlock(16, 32, 11, 1),
+            ConvBlock(32, 64, 11, 1),
+            ConvBlock(64, 128, 11, 1),
+        )
+        self.linear = nn.Linear(128, 1)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.mean(dim=2)
+        x = self.linear(x)
+        return x
+
+
 if __name__ == '__main__':
     model = ResNet()
     x = torch.randn((4, 1, 16000))
