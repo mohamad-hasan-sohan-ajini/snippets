@@ -90,8 +90,5 @@ for e in range(1000):
         # update counter
         counter += 1
 
-    torch.save(
-        model.state_dict(),
-        f'models/asr_e{e+1:02d}.pth'
-    )
+    torch.save(model.state_dict(), f'models/asr_e{e+1:02d}.pth')
     scheduler.step()
