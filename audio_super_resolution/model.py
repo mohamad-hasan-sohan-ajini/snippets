@@ -187,7 +187,8 @@ class Detector3(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         x = x.squeeze(2).transpose(1, 2).contiguous()
-        x = self.linear(x).squeeze(2)
+        x = self.linear(x).view(-1).contiguous()
+        x = x.mean(dim=0, keepdim=True)
         return x
 
 
