@@ -177,12 +177,12 @@ class Detector3(nn.Module):
 
         self.conv = nn.Sequential(
             torchaudio.transforms.Spectrogram(n_fft=400, hop_length=160),
-            ConvBlock2d(1, 16, kernel_size=(11, 5), stride=(3, 2)),
-            ConvBlock2d(16, 32, kernel_size=(11, 5), stride=(3, 2)),
+            ConvBlock2d(1, 32, kernel_size=(11, 5), stride=(3, 2)),
             ConvBlock2d(32, 64, kernel_size=(11, 5), stride=(3, 2)),
-            ConvBlock2d(64, 128, kernel_size=(3, 5), stride=(1, 2)),
+            ConvBlock2d(64, 128, kernel_size=(11, 5), stride=(3, 2)),
+            ConvBlock2d(128, 256, kernel_size=(3, 5), stride=(1, 2)),
         )
-        self.linear = nn.Linear(128, 1)
+        self.linear = nn.Linear(256, 1)
 
     def forward(self, x):
         x = self.conv(x)
