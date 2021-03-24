@@ -70,9 +70,7 @@ for e in range(1000):
         detector_optimizer.zero_grad()
         detector_error_real.backward(one)
         # with fake batch
-        with torch.no_grad():
-            out = model(x)
-        fake = out[:, :, start:end]
+        fake = out[:, :, start:end].detach()
         detector_error_fake = detector(fake).mean(dim=0)
         detector_error_fake.backward(mone)
         detector_optimizer.step()
