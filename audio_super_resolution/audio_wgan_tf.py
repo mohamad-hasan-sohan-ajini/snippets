@@ -33,7 +33,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=.0001)
 scheduler = torch.optim.lr_scheduler.StepLR(
     optimizer,
     step_size=15,
-    gamma=.9
+    gamma=.5
 )
 
 # add gan stuff
