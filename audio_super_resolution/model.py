@@ -1,6 +1,6 @@
-from typing import no_type_check_decorator
 import torch
 import torch.nn as nn
+import torchaudio
 
 
 class SineActivation(nn.Module):
@@ -117,6 +117,19 @@ class ConvBlock(nn.Module):
         return self.main(x)
 
 
+class ConvBlock2d(nn.Module):
+    def __init__(self, in_ch, out_ch, kernel_size, stride):
+        super(ConvBlock2d, self).__init__()
+        self.main = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, kernel_size=kernel_size, stride=stride),
+            nn.BatchNorm2d(out_ch),
+            SineActivation()
+        )
+
+    def forward(self, x):
+        return self.main(x)
+
+
 class Detector(nn.Module):
     def __init__(self):
         super(Detector, self).__init__()
@@ -132,6 +145,48 @@ class Detector(nn.Module):
     def forward(self, x):
         x = self.conv(x)
         x = x.mean(dim=2)
+        x = self.linear(x)
+        return x
+
+
+class Detector2(nn.Module):
+    def __init__(self):
+        super(Detector2, self).__init__()
+
+        self.conv = nn.Sequential(
+            ConvBlock(1, 16, 11, 3),
+            ConvBlock(16, 16, 11, 3),
+            ConvBlock(16, 32, 11, 3),
+            ConvBlock(32, 32, 11, 3),
+            ConvBlock(32, 64, 11, 3),
+            ConvBlock(64, 64, 11, 3),
+            ConvBlock(64, 128, 11, 1),
+        )
+        self.linear = nn.Linear(128, 1)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.mean(dim=2)
+        x = self.linear(x)
+        return x
+
+
+class Detector3(nn.Module):
+    def __init__(self):
+        super(Detector3, self).__init__()
+
+        self.conv = nn.Sequential(
+            torchaudio.transforms.Spectrogram(n_fft=400, hop_length=160),
+            ConvBlock2d(1, 16, kernel_size=(11, 5), stride=(3, 2)),
+            ConvBlock2d(16, 32, kernel_size=(11, 5), stride=(3, 2)),
+            ConvBlock2d(32, 64, kernel_size=(11, 5), stride=(3, 2)),
+            ConvBlock2d(64, 128, kernel_size=(3, 5), stride=(1, 2)),
+        )
+        self.linear = nn.Linear(128, 1)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.mean(dim=3).squeeze()
         x = self.linear(x)
         return x
 
