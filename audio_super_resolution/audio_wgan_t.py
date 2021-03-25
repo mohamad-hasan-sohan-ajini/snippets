@@ -6,7 +6,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from data_loader import AudioLoader
-from model import Detector, ResNet
+from model import Detector2, ResNet
 
 if torch.cuda.is_available():
     device = torch.device('cuda:0')
@@ -20,7 +20,7 @@ ds = AudioLoader(
     n_mask=80,
     noise_file='resources/noise/whitenoisegaussian.wav'
 )
-dl = DataLoader(ds, batch_size=8, num_workers=8, pin_memory=True)
+dl = DataLoader(ds, batch_size=5, num_workers=5, pin_memory=True)
 
 model = ResNet(n_layers=[3, 5, 5, 3], init_planes=32)
 model.to(device)
@@ -29,18 +29,18 @@ log = SummaryWriter('log')
 
 criterion = torch.nn.L1Loss()
 
-optimizer = torch.optim.Adam(model.parameters(), lr=.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=.0001)
 scheduler = torch.optim.lr_scheduler.StepLR(
     optimizer,
-    step_size=15,
-    gamma=.9
+    step_size=10,
+    gamma=.1
 )
 
 # add gan stuff
-detector = Detector()
+detector = Detector2()
 detector.to(device)
-detector_optimizer = torch.optim.RMSprop(detector.parameters(), lr=.00005)
-generator_optimizer = torch.optim.RMSprop(model.parameters(), lr=.00005)
+detector_optimizer = torch.optim.RMSprop(detector.parameters(), lr=.0005)
+generator_optimizer = torch.optim.RMSprop(model.parameters(), lr=.0005)
 one = torch.FloatTensor([1]).to(device)
 mone = torch.FloatTensor([-1]).to(device)
 
@@ -63,8 +63,8 @@ for e in range(1000):
 
         # train detector
         # with real batch
-        start = torch.randint(0, 32000 - 41, (1,))
-        end = start + 41
+        start = torch.randint(0, 32000 - 33, (1,))
+        end = start + 33
         real = y[:, :, start:end]
         detector_error_real = detector(real).mean(dim=0)
         detector_optimizer.zero_grad()
@@ -83,7 +83,8 @@ for e in range(1000):
         # train generator
         if counter % 5 == 0:
             generator_optimizer.zero_grad()
-            generator_error = detector(fake).mean(dim=0)
+            out = model(x)
+            generator_error = detector(out).mean(dim=0)
             generator_error.backward(one)
             log.add_scalar('generator-error', generator_error.item(), counter)
 

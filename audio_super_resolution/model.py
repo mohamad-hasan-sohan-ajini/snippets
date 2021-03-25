@@ -154,15 +154,16 @@ class Detector2(nn.Module):
         super(Detector2, self).__init__()
 
         self.conv = nn.Sequential(
-            ConvBlock(1, 16, 11, 3),
-            ConvBlock(16, 16, 11, 3),
-            ConvBlock(16, 32, 11, 3),
-            ConvBlock(32, 32, 11, 3),
-            ConvBlock(32, 64, 11, 3),
-            ConvBlock(64, 64, 11, 3),
-            ConvBlock(64, 128, 11, 1),
+            ConvBlock(1, 32, 5, 1),
+            ConvBlock(32, 32, 5, 1),
+            ConvBlock(32, 64, 5, 1),
+            ConvBlock(64, 64, 5, 1),
+            ConvBlock(64, 128, 5, 1),
+            ConvBlock(128, 128, 5, 1),
+            ConvBlock(128, 256, 5, 1),
+            ConvBlock(256, 256, 5, 1),
         )
-        self.linear = nn.Linear(128, 1)
+        self.linear = nn.Linear(256, 1)
 
     def forward(self, x):
         x = self.conv(x)
