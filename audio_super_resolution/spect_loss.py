@@ -14,7 +14,7 @@ class SpectLoss(nn.Module):
         self.criterion = nn.MSELoss()
 
     def get_spect(self, x):
-        spect = self.transform(x).log10()
+        spect = self.transform(x)
         return spect[:, :, self.lb:]
 
     def forward(self, x, x_hat):
