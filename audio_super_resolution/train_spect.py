@@ -54,7 +54,7 @@ for e in range(1000):
         optimizer.step()
 
         log.add_scalar('loss1', loss1.item(), counter)
-        log.add_scalar('loss2', loss1.item(), counter)
+        log.add_scalar('loss2', loss2.item(), counter)
         log.add_scalar('loss', loss.item(), counter)
         counter += 1
     torch.save(
