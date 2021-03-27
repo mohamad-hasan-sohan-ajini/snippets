@@ -20,7 +20,5 @@ class SpectLoss(nn.Module):
     def forward(self, x, x_hat):
         spect = self.get_spect(x)
         spect_hat = self.get_spect(x_hat)
-        print('@spectLoss')
-        print(spect.size())
         loss = self.criterion(spect, spect_hat)
         return loss
