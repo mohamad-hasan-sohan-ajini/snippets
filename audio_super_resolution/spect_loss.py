@@ -11,11 +11,12 @@ class SpectLoss(nn.Module):
             n_fft=400,
             hop_length=160
         )
-        self.criterion = nn.MSELoss()
+        self.criterion = nn.SmoothL1Loss(beta=.3)
 
     def get_spect(self, x):
         spect = self.transform(x)
-        return spect[:, :, self.lb:]
+        spect = spect[:, :, self.lb:] + 1e-10
+        return spect.log10()
 
     def forward(self, x, x_hat):
         spect = self.get_spect(x)

@@ -28,14 +28,14 @@ model.to(device)
 
 log = SummaryWriter('log_spect')
 
-criterion1 = torch.nn.L1Loss()
-criterion2 = SpectLoss(lowest_bin=70).to(device)
+criterion1 = torch.nn.SmoothL1Loss(beta=.01)
+criterion2 = SpectLoss(lowest_bin=1).to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=.001)
 scheduler = torch.optim.lr_scheduler.StepLR(
     optimizer,
-    step_size=15,
-    gamma=.9
+    step_size=3,
+    gamma=.5
 )
 
 counter = 0
@@ -48,7 +48,7 @@ for e in range(1000):
 
         loss1 = criterion1(out, y)
         loss2 = criterion2(out, y)
-        loss = loss1 + loss2
+        loss = .95 * loss1 + .05 * loss2
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
