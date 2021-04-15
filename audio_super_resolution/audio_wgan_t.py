@@ -86,6 +86,7 @@ for e in range(1000):
             out = model(x)
             generator_error = detector(out).mean(dim=0)
             generator_error.backward(one)
+            generator_optimizer.step()
             log.add_scalar('generator-error', generator_error.item(), counter)
 
         # update counter
