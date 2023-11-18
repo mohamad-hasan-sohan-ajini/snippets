@@ -5,10 +5,12 @@ import numpy as np
 import pyvista as pv
 from tqdm import tqdm
 
+pv.start_xvfb()
+
 # List of .obj file paths
 base_path = Path('results')
 obj_files = sorted(base_path.rglob('*.obj'))
-obj_files = obj_files[:10_000]
+obj_files = obj_files[:1_000]
 
 # Create a PyVista plotter
 plotter = pv.Plotter(
@@ -32,7 +34,7 @@ plotter.set_background('black')
 plotter.show_axes()
 
 # find bounds
-bounds = np.array([mesh.bounds for mesh in plotter.meshes])
+bounds = np.array([mesh.bounds for mesh in tqdm(plotter.meshes, file=sys.stdout)])
 bounds_max = bounds.max(axis=0)
 max_x = bounds_max[1]
 sup_y = bounds_max[2]
@@ -74,3 +76,5 @@ for t, (position, look_at) in enumerate(zip(position_linspace, tqdm(look_at_lins
     # Display the rendering scene
     plotter.show(interactive=False, auto_close=False)
     image = plotter.screenshot(f'/tmp/zrender{t:04d}.png')
+
+# ffmpeg -framerate 30 -pattern_type glob -i '*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
