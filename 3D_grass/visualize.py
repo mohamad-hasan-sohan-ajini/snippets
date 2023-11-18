@@ -10,7 +10,7 @@ pv.start_xvfb()
 # List of .obj file paths
 base_path = Path('results')
 obj_files = sorted(base_path.rglob('*.obj'))
-obj_files = obj_files[:1_000]
+obj_files = obj_files[:10_000]
 
 # Create a PyVista plotter
 plotter = pv.Plotter(
