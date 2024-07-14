@@ -66,4 +66,4 @@ for t, position_pt in enumerate(tqdm(positions)):
 
 # from IPython import embed
 # embed()
-# ffmpeg -framerate 30 -i /tmp/zrender%04d.png -c:v libx264 -pix_fmt yuv420p -y output.mp4
+# ffmpeg -framerate 60 -i /tmp/zrender%04d.png -c:v libx264 -pix_fmt yuv420p -y output.mp4
