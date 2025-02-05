@@ -76,4 +76,4 @@ for t, (position, look_at) in enumerate(zip(position_linspace, tqdm(look_at_lins
     plotter.show(interactive=False, auto_close=False)
     image = plotter.screenshot(f'/tmp/zrender{t:04d}.png')
 
-# ffmpeg -framerate 30 -pattern_type glob -i '*.png' -c:v libx264 -pix_fmt yuv420p out.mp4
+# ffmpeg -framerate 30 -i frame%04d.png -c:v libx264 -pix_fmt yuv420p output.mp4
